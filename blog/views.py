@@ -7,7 +7,7 @@ from blog.models import Post
 
 
 def post_list(request):
-    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
+    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
     return render(request, 'blog/post_list.html', {'posts': posts})
 
 
@@ -31,9 +31,12 @@ def post_new(request):
 
     return render(request, 'blog/post_edit.html', {'form': form})
 
-
+@login_required
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    if request.user.pk != post.author.pk:
+        return redirect('post_list')
+
     if request.method == 'POST':
         form = PostForm(request.POST, instance=post)
         if form.is_valid():
